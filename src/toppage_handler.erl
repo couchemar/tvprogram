@@ -23,7 +23,16 @@ program(Req, State) ->
     {ok, Conn} = mongo:connect(Host),
     {ok, Cursor} = mongo:do(safe, master, Conn, tv,
                             fun() ->
-                                    mongo:find(afisha, {})
+                                    mongo:find(afisha,
+                                               {},
+                                               {'_id', false,
+                                                start_time, false,
+                                                end_time, false,
+                                                channel_id, false})
                             end),
     {Result} = mongo:next(Cursor),
-    {<<"test">>, Req, State}.
+    io:format("Res: ~p~n", [Result]),
+    JResult = bson:fields(Result),
+    io:format("Json: ~p~n", [JResult]),
+    Json = jsx:encode(JResult),
+    {Json, Req, State}.

@@ -3,7 +3,7 @@ REBAR = ./rebar
 clean:
 	${REBAR} clean
 
-deps:
+get-deps:
 	${REBAR} get-deps
 
 compile:
