@@ -26,13 +26,23 @@ program(Req, State) ->
                                     mongo:find(afisha,
                                                {},
                                                {'_id', false,
-                                                start_time, false,
-                                                end_time, false,
                                                 channel_id, false})
                             end),
     {Result} = mongo:next(Cursor),
     io:format("Res: ~p~n", [Result]),
-    JResult = bson:fields(Result),
+
+    {SUT} = bson:lookup(start_time, Result),
+
+    STS = date_utils:format(SUT),
+
+    {EUT} = bson:lookup(end_time, Result),
+
+    ETS = date_utils:format(EUT),
+
+    Replaced1 = bson:update(start_time, list_to_binary(STS), Result),
+    Replaced2 = bson:update(end_time, list_to_binary(ETS), Replaced1),
+
+    JResult = bson:fields(Replaced2),
     io:format("Json: ~p~n", [JResult]),
     Json = jsx:encode(JResult),
     {Json, Req, State}.
