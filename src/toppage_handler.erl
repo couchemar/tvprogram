@@ -31,16 +31,16 @@ program(Req, State) ->
     {Result} = mongo:next(Cursor),
     io:format("Res: ~p~n", [Result]),
 
-    {SUT} = bson:lookup(start_time, Result),
+    {SUT} = bson:lookup(start_date, Result),
 
     STS = date_utils:format(SUT),
 
-    {EUT} = bson:lookup(end_time, Result),
+    {EUT} = bson:lookup(end_date, Result),
 
     ETS = date_utils:format(EUT),
 
-    Replaced1 = bson:update(start_time, list_to_binary(STS), Result),
-    Replaced2 = bson:update(end_time, list_to_binary(ETS), Replaced1),
+    Replaced1 = bson:update(start_date, list_to_binary(STS), Result),
+    Replaced2 = bson:update(end_date, list_to_binary(ETS), Replaced1),
 
     JResult = bson:fields(Replaced2),
     io:format("Json: ~p~n", [JResult]),
