@@ -1,4 +1,4 @@
--module(toppage_handler).
+-module(program_handler).
 
 -export([init/3]).
 -export([allowed_methods/2]).
