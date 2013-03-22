@@ -2,6 +2,7 @@
 
 -export([init/3]).
 -export([allowed_methods/2]).
+-export([options/2]).
 -export([content_types_provided/2]).
 
 -export([program/2]).
@@ -11,7 +12,15 @@ init(_Transport, _Req, []) ->
 
 
 allowed_methods(Req, State) ->
-	{[<<"GET">>], Req, State}.
+	{[<<"GET">>, <<"OPTIONS">>], Req, State}.
+
+options(Req, State) ->
+    {[{<<"access-control-allow-origin">>, <<"*">>},
+      {<<"access-control-allow-methods">>, <<"GET, OPTIONS">>},
+      {<<"access-control-allow-headers">>, <<"content-type, accept">>},
+      {<<"access-control-max-age">>, 10},
+      {<<"content-length">>, 0}], Req, State}.
+
 
 content_types_provided(Req, State) ->
     {[
@@ -19,6 +28,7 @@ content_types_provided(Req, State) ->
      ], Req, State}.
 
 program(Req, State) ->
+    io:format("Req: ~p~n", [Req]),
     Host = {localhost, 27017},
     {ok, Conn} = mongo:connect(Host),
     Date = os:timestamp(),
