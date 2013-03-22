@@ -26,33 +26,26 @@ program(Req, State) ->
                      safe, master, Conn, tv,
                      fun() ->
                              mongo:find(afisha,
-                                     %   {'$or', [{start_date, {'$lte', Date}},
-                                     %             {end_date, {'$gt', Date}}]},
-                                        {start_date, {'$gte', Date}},
-                                        %{end_date, {'$gt', Date}},
+                                        {end_date, {'$gt', Date}},
                                         {'_id', false,
                                          channel_id, false})
                      end),
     Result = process(Cursor),
-    io:format("Result: ~p~n", [Result]),
-    JResult = bson:fields(Result),
-    io:format("Json: ~p~n", [JResult]),
-    Json = jsx:encode(JResult),
+    Json = jsx:encode([{<<"programs">>, Result}]),
     {Json, Req, State}.
 
 process(Cursor) ->
     process(Cursor, []).
 process(Cursor, Acc) ->
-    io:format("Acc: ~p~n", [Acc]),
     case mongo:next(Cursor) of
         {} -> Acc;
         {Result} ->
-            io:format("Res: ~p~n", [Result]),
             {SUT} = bson:lookup(start_date, Result),
             STS = date_utils:format(SUT),
             {EUT} = bson:lookup(end_date, Result),
             ETS = date_utils:format(EUT),
             Replaced1 = bson:update(start_date, list_to_binary(STS), Result),
             Replaced2 = bson:update(end_date, list_to_binary(ETS), Replaced1),
-            process(Cursor, [Replaced2|Acc])
+            JResult = bson:fields(Replaced2),
+            process(Cursor, [JResult|Acc])
     end.
