@@ -14,12 +14,13 @@ init(_Transport, _Req, []) ->
 allowed_methods(Req, State) ->
 	{[<<"GET">>, <<"OPTIONS">>], Req, State}.
 
+
 options(Req, State) ->
-    {[{<<"access-control-allow-origin">>, <<"*">>},
-      {<<"access-control-allow-methods">>, <<"GET, OPTIONS">>},
-      {<<"access-control-allow-headers">>, <<"content-type, accept">>},
-      {<<"access-control-max-age">>, 10},
-      {<<"content-length">>, 0}], Req, State}.
+    Req1 = cowboy_req:set_resp_header(<<"access-control-allow-methods">>, <<"GET, OPTIONS">>, Req),
+    Req2 = cowboy_req:set_resp_header(<<"access-control-allow-origin">>, <<"*">>, Req1),
+    Req3 = cowboy_req:set_resp_header(<<"access-control-allow-headers">>,
+                                      <<"content-type, accept, x-requested-with">>, Req2),
+    {ok, Req3, State}.
 
 
 content_types_provided(Req, State) ->
@@ -28,7 +29,6 @@ content_types_provided(Req, State) ->
      ], Req, State}.
 
 program(Req, State) ->
-    io:format("Req: ~p~n", [Req]),
     Host = {localhost, 27017},
     {ok, Conn} = mongo:connect(Host),
     Date = os:timestamp(),
@@ -41,6 +41,7 @@ program(Req, State) ->
                                          channel_id, false})
                      end),
     Result = process(Cursor),
+    io:format('Result: ~p~n', [Result]),
     Json = jsx:encode([{<<"programs">>, Result}]),
     {Json, Req, State}.
 
