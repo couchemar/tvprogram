@@ -10,25 +10,24 @@
 init(_Transport, _Req, []) ->
     {upgrade, protocol, cowboy_rest}.
 
-
 allowed_methods(Req, State) ->
 	{[<<"GET">>, <<"OPTIONS">>], Req, State}.
 
-
 options(Req, State) ->
-    Req1 = cowboy_req:set_resp_header(<<"access-control-allow-methods">>, <<"GET, OPTIONS">>, Req),
-    Req2 = cowboy_req:set_resp_header(<<"access-control-allow-origin">>, <<"*">>, Req1),
-    Req3 = cowboy_req:set_resp_header(<<"access-control-allow-headers">>,
-                                      <<"content-type, accept, x-requested-with">>, Req2),
-    {ok, Req3, State}.
-
+    Req1 = add_cors_headers(Req),
+    {ok, Req1, State}.
 
 content_types_provided(Req, State) ->
-    {[
-      {{<<"application">>, <<"json">>, []}, program}
-     ], Req, State}.
+    {
+      [
+       {{<<"application">>, <<"json">>, []}, program}
+      ],
+      Req, State
+    }.
 
 program(Req, State) ->
+    Req1 = add_cors_headers(Req),
+
     Host = {localhost, 27017},
     {ok, Conn} = mongo:connect(Host),
     Date = os:timestamp(),
@@ -41,12 +40,12 @@ program(Req, State) ->
                                          channel_id, false})
                      end),
     Result = process(Cursor),
-    io:format('Result: ~p~n', [Result]),
     Json = jsx:encode([{<<"programs">>, Result}]),
-    {Json, Req, State}.
+    {Json, Req1, State}.
 
 process(Cursor) ->
     process(Cursor, []).
+
 process(Cursor, Acc) ->
     case mongo:next(Cursor) of
         {} -> Acc;
@@ -60,3 +59,14 @@ process(Cursor, Acc) ->
             JResult = bson:fields(Replaced2),
             process(Cursor, [JResult|Acc])
     end.
+
+% =======
+% PRIVATE
+% =======
+
+add_cors_headers(Req) ->
+    Req1 = cowboy_req:set_resp_header(<<"access-control-allow-methods">>, <<"GET, OPTIONS">>, Req),
+    Req2 = cowboy_req:set_resp_header(<<"access-control-allow-origin">>, <<"*">>, Req1),
+    Req3 = cowboy_req:set_resp_header(<<"access-control-allow-headers">>,
+                                      <<"content-type, accept, x-requested-with, origin">>, Req2),
+    cowboy_req:set_resp_header(<<"access-control-max-age">>, <<"10">>, Req3).
