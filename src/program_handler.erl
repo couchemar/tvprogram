@@ -35,7 +35,8 @@ program(Req, State) ->
                      safe, master, Conn, tv,
                      fun() ->
                              mongo:find(afisha,
-                                        {end_date, {'$gt', Date}},
+                                        {'$query', {end_date, {'$gt', Date}},
+                                        '$orderby', {end_date, -1}},
                                         {'_id', false,
                                          channel_id, false})
                      end),
