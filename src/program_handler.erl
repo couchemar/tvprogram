@@ -42,18 +42,19 @@ resource_exists(Req, State) ->
 % =================
 
 program(Req, ChannelID) ->
-    Req1 = add_cors_headers(Req),
+    {Limit, Req1} = cowboy_req:qs_val(<<"limit">>, Req),
+    Req2 = add_cors_headers(Req1),
 
     Host = {localhost, 27017},
     {ok, Conn} = mongo:connect(Host),
     Date = os:timestamp(),
     {ok, Cursor} = mongo:do(
                      safe, master, Conn, tv,
-                     fun() -> find(Date, ChannelID) end
+                     fun() -> prepare_find(Date, ChannelID) end
                     ),
-    Result = process(Cursor),
+    Result = process(Cursor, Limit),
     Json = jsx:encode([{<<"programs">>, Result}]),
-    {Json, Req1, ChannelID}.
+    {Json, Req2, ChannelID}.
 
 
 % =======
@@ -67,10 +68,20 @@ add_cors_headers(Req) ->
                                       <<"content-type, accept, x-requested-with, origin">>, Req2),
     cowboy_req:set_resp_header(<<"access-control-max-age">>, <<"600">>, Req3).
 
-process(Cursor) ->
-    process(Cursor, []).
+process(Cursor, Limit) ->
+    process(Cursor, [], Limit).
 
-process(Cursor, Acc) ->
+process(Cursor, Acc, undefined) ->
+    process_cursor(Cursor, Acc, undefined);
+process(Cursor, Acc, Limit) when is_binary(Limit)->
+    process(Cursor, Acc, erlang:binary_to_integer(Limit));
+process(_Cursor, Acc, 0) ->
+    Acc;
+process(Cursor, Acc, Limit) ->
+    io:format("Limit: ~p~n", [Limit]),
+    process_cursor(Cursor, Acc, Limit - 1).
+
+process_cursor(Cursor, Acc, Limit) ->
     case mongo:next(Cursor) of
         {} -> Acc;
         {Result} ->
@@ -81,12 +92,15 @@ process(Cursor, Acc) ->
             Replaced1 = bson:update(start_date, list_to_binary(STS), Result),
             Replaced2 = bson:update(end_date, list_to_binary(ETS), Replaced1),
             JResult = bson:fields(Replaced2),
-            process(Cursor, [JResult|Acc])
+            process(Cursor, [JResult|Acc], Limit)
     end.
 
-find(Date, ChannelID) ->
+prepare_find(Date, ChannelID) ->
     Query = {end_date, {'$gt', Date}, channel_id, ChannelID},
+    find(Query).
+
+find(Query) ->
     mongo:find(afisha,
                {'$query', Query,
-                '$orderby', {end_date, -1}},
+                '$orderby', {end_date, 1}},
                {'_id', false}).
