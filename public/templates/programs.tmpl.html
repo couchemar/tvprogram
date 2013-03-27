@@ -1,6 +1,9 @@
-<ul>
-  <li ng-repeat="program in programs">
-    {{ program.channel_name }} {{ program.name }}
-    {{ program.start_date | date:'HH:mm' }}&ndash;{{ program.end_date | date:'HH:mm' }}
-  </li>
-<ul>
+<div ng-repeat="program in programs | orderBy:'start_date'" class="program">
+  <div>
+    {{ program.channel_name }}
+  </div>
+  <div>
+    {{ program.name }}
+  </div>
+  {{ program.start_date | date:'HH:mm' }}&ndash;{{ program.end_date | date:'HH:mm' }}
+</div>

@@ -78,7 +78,6 @@ process(Cursor, Acc, Limit) when is_binary(Limit)->
 process(_Cursor, Acc, 0) ->
     Acc;
 process(Cursor, Acc, Limit) ->
-    io:format("Limit: ~p~n", [Limit]),
     process_cursor(Cursor, Acc, Limit - 1).
 
 process_cursor(Cursor, Acc, Limit) ->

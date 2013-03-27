@@ -1,0 +1,27 @@
+html, body {
+    height: 100%;
+}
+
+.program {
+    border-width: 1px;
+    border-color: red;
+    border-style: solid;
+    display: inline-block;
+    margin: 1px;
+}
+
+.sidebar {
+    float: left;
+    width: 20%;
+    border-width: 1px;
+    border-color: blue;
+    border-style: solid;
+    background-color: #ae33fc;
+    height: auto !important;
+    height: 100%;
+    min-height: 100%;
+}
+
+.content {
+    margin-left: 21%
+}
