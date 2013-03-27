@@ -4,6 +4,7 @@ angular.module('app', ['ngResource'])
          {},
          function(data) {
              $log.info(data);
+             $scope.programs = data.programs;
          },
          function(reason) {
              $log.info(reason);

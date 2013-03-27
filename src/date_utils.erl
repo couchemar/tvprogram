@@ -3,5 +3,5 @@
 -export([format/1]).
 
 format(UnixTime) ->
-    Date = ec_date:format("Y-m-dTG:i:s", UnixTime),
+    Date = ec_date:format("Y-m-d\\TH:i:s", UnixTime),
     Date ++ "Z".

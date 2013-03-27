@@ -1,1 +1,6 @@
-
+<ul>
+  <li ng-repeat="program in programs">
+    {{ program.channel_name }} {{ program.name }}
+    {{ program.start_date | date:'HH:mm' }}&ndash;{{ program.end_date | date:'HH:mm' }}
+  </li>
+<ul>
