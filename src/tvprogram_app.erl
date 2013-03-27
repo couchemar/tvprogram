@@ -11,7 +11,7 @@
 
 start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile(
-                 [{'_', [{"/program", program_handler, []}]}]),
+                 [{'_', [{"/program/[:channel_id]", program_handler, []}]}]),
 	{ok, _} = cowboy:start_http(
                 http, 100,
                 [{port, 9090}],
