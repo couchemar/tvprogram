@@ -14,7 +14,7 @@ angular.module('app', ['ngResource'])
         if (checked) {
             ProgramsResource.get(
                 {channelId: channelId,
-                limit: 1},
+                 limit: 1},
                 function(data) {
                     $log.info(data);
                     Programs.save(data.programs);
