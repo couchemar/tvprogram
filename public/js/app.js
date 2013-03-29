@@ -1,8 +1,8 @@
 angular.module('app', ['ngResource'])
 .controller('MainController', function($scope, $resource, $log) {
-     $resource('http://localhost\\:9090/program/:channel_id').get(
+     $resource('http://localhost\\:9090/channel/:channel_id/program/').get(
          {channel_id: 1,
-          limit: 10},
+          limit: 30},
          function(data) {
              $log.info(data);
              $scope.programs = data.programs;
@@ -10,5 +10,5 @@ angular.module('app', ['ngResource'])
          function(reason) {
              $log.info(reason);
          }
-     )
-})
+     );
+});
