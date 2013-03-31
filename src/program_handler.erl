@@ -18,8 +18,7 @@ allowed_methods(Req, State) ->
 	{[<<"GET">>, <<"OPTIONS">>], Req, State}.
 
 options(Req, State) ->
-    Req1 = add_cors_headers(Req),
-    {ok, Req1, State}.
+    {ok, rest_utils:add_cors_headers(Req), State}.
 
 content_types_provided(Req, State) ->
     {
@@ -37,13 +36,12 @@ resource_exists(Req, State) ->
             {true, Req2, erlang:binary_to_integer(ChannelID)}
         end.
 
-% =================
-% Callback Callbacs
-% =================
+% ==================
+% Callback Callbacks
+% ==================
 
 program(Req, ChannelID) ->
     {Limit, Req1} = cowboy_req:qs_val(<<"limit">>, Req),
-    Req2 = add_cors_headers(Req1),
 
     Host = {localhost, 27017},
     {ok, Conn} = mongo:connect(Host),
@@ -54,19 +52,11 @@ program(Req, ChannelID) ->
                     ),
     Result = process(Cursor, Limit),
     Json = jsx:encode([{<<"programs">>, Result}]),
-    {Json, Req2, ChannelID}.
-
+    {Json, rest_utils:add_cors_headers(Req1), ChannelID}.
 
 % =======
 % PRIVATE
 % =======
-
-add_cors_headers(Req) ->
-    Req1 = cowboy_req:set_resp_header(<<"access-control-allow-methods">>, <<"GET, OPTIONS">>, Req),
-    Req2 = cowboy_req:set_resp_header(<<"access-control-allow-origin">>, <<"*">>, Req1),
-    Req3 = cowboy_req:set_resp_header(<<"access-control-allow-headers">>,
-                                      <<"content-type, accept, x-requested-with, origin">>, Req2),
-    cowboy_req:set_resp_header(<<"access-control-max-age">>, <<"600">>, Req3).
 
 process(Cursor, Limit) ->
     process(Cursor, [], Limit).
