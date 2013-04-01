@@ -33,7 +33,7 @@ resource_exists(Req, State) ->
         {undefined, Req2} ->
             {false, Req2, State};
         {ChannelID, Req2} ->
-            {true, Req2, erlang:binary_to_integer(ChannelID)}
+            {true, Req2, ChannelID}
         end.
 
 % ==================
