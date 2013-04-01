@@ -9,8 +9,8 @@
   <body ng-controller="MainController">
 
     <div class="sidebar" ng-cloak>
-      <div ng-repeat="channel in channels">
-        <input type="checkbox" ng-model="checked" ng-change="check(channel.id, checked)"> {{ channel.name }}
+      <div ng-repeat="channel in channels | orderBy: '_id'">
+        <input type="checkbox" ng-model="checked" ng-change="check(channel._id, checked)"> {{ channel.name }}
       </div>
     </div>
 

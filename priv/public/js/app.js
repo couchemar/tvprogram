@@ -2,7 +2,9 @@ angular.module('app', ['ngResource'])
 .controller('MainController', function($scope, $log,
                                        ProgramsResource, Channels,
                                        Programs) {
-    $scope.channels = Channels;
+    Channels.get(function(data) {
+        $scope.channels = data.channels;
+    });
     $scope.$watch(Programs.get, function(newValue, oldValue) {
         if (oldValue == newValue) {
             return;
@@ -28,11 +30,11 @@ angular.module('app', ['ngResource'])
         }
     };
 })
-.factory('Channels', function() {
-    return [
-        {'id': 1, 'name': 'Первый'},
-        {'id': 2, 'name': 'Россия 1'}
-    ];
+.factory('Channels', function($log, $resource) {
+    var Channels = $resource(
+        'http://localhost\\:9090/channel/'
+    );
+    return Channels;
 })
 .factory('Programs', function($filter) {
     var programs = [];

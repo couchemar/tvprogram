@@ -23,7 +23,7 @@ options(Req, State) ->
 content_types_provided(Req, State) ->
     {
       [
-       {{<<"application">>, <<"json">>, []}, channel}
+       {{<<"application">>, <<"json">>, []}, channels}
       ],
       Req, State
     }.
@@ -36,7 +36,7 @@ channels(Req, State) ->
     Host = {localhost, 27017},
     {ok, Conn} = mongo:connect(Host),
     {ok, Cursor} = mongo:do(safe, master, Conn, tv,
-                            mongo:find(channels, {}, {})),
+                            fun() -> mongo:find(channels, {}, {}) end),
     Result = process(Cursor),
     Json = jsx:encode([{<<"channels">>, Result}]),
     {Json, rest_utils:add_cors_headers(Req), State}.

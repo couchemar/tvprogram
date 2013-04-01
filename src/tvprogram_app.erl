@@ -31,7 +31,7 @@ dispatch_routes() ->
     cowboy_router:compile(
                  [
                   {'_', [
-                         {"/channel/[:channel_id]/", channel_handler, []},
+                         {"/channel/", channel_handler, []},
                          {"/channel/[:channel_id]/program/", program_handler, []}
                         ]
                   }
