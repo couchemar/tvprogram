@@ -1,0 +1,7 @@
+ <div ng-repeat="channel in channels | orderBy: '_id'">
+   <input type="checkbox"
+          ng-model="checked"
+          ng-checked="channel.checked"
+          ng-change="check(channel._id, checked)"> {{ channel.name }}
+ </div>
+

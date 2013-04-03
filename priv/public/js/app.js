@@ -1,6 +1,36 @@
+"use strict";
 angular.module('app', ['ngResource'])
+.config(function($routeProvider) {
+    $routeProvider
+        .when('/', {
+            controller: 'MainController',
+            templateUrl: 'public/templates/programs.tmpl.html'
+        })
+        .when('/channels', {
+            controller: 'ChannelsController',
+            templateUrl: 'public/templates/channels.tmpl.html',
+            resolve: {
+                channels: function($q, Channels, $log) {
+                    var defer = $q.defer();
+                    Channels.get(
+                        function(data) {
+                            $log.info('!');
+                            defer.resolve(data.channels);
+                        },
+                        function() {
+                            defer.reject();
+                        });
+                    return defer.promise;
+                }
+            }
+        })
+        .otherwise({redirectTo: '/'});
+})
+.controller('ChannelsController', function($scope,  channels) {
+    $scope.channels = channels;
+})
 .controller('MainController', function($scope, $log,
-                                       ProgramsResource, Channels,
+                                       ProgramsResource,
                                        Programs, ChannelsStorage) {
 
     var prepareChannel = function(channelId) {
@@ -23,11 +53,11 @@ angular.module('app', ['ngResource'])
         });
     };
 
-    Channels.get(function(data) {
+/*    Channels.get(function(data) {
         ChannelsStorage.save(data.channels);
         $scope.channels = ChannelsStorage.get(true);
         prepareChannels(ChannelsStorage.get(false));
-    });
+    });*/
 
     $scope.$watch(ChannelsStorage.get, function(newValue, oldValue) {
         if (oldValue == newValue) {
@@ -80,9 +110,9 @@ angular.module('app', ['ngResource'])
         return channels;
     };
 
-    Channels.get(function(data) {
+/*    Channels.get(function(data) {
         _save(data.channels);
-    });
+    });*/
 
     return {
         save: _save,
