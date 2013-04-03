@@ -25,8 +25,8 @@ angular.module('app', ['ngResource'])
 
     Channels.get(function(data) {
         ChannelsStorage.save(data.channels);
-        $scope.channels = ChannelsStorage.get();
-        prepareChannels($scope.channels);
+        $scope.channels = ChannelsStorage.get(true);
+        prepareChannels(ChannelsStorage.get(false));
     });
 
     $scope.$watch(ChannelsStorage.get, function(newValue, oldValue) {
@@ -59,7 +59,7 @@ angular.module('app', ['ngResource'])
     );
     return Channels;
 })
-.factory('ChannelsStorage', function($window, Channels) {
+.factory('ChannelsStorage', function($window, $filter, Channels) {
     var _save = function(channels) {
             $window.localStorage['channels'] = JSON.stringify(channels);
     };
@@ -69,7 +69,16 @@ angular.module('app', ['ngResource'])
         return !!_checked ? JSON.parse(_checked) : [];
     };
 
-
+    var _getChannels = function() {
+        var channels = JSON.parse($window.localStorage['channels']);
+        var checked = _getChecked();
+        angular.forEach(channels, function(channel) {
+            if (checked.indexOf(parseInt(channel._id)) != -1) {
+                channel.checked = true;
+            }
+        });
+        return channels;
+    };
 
     Channels.get(function(data) {
         _save(data.channels);
@@ -77,15 +86,13 @@ angular.module('app', ['ngResource'])
 
     return {
         save: _save,
-        get: function() {
-            var channels = JSON.parse($window.localStorage['channels']);
-            var checked = _getChecked();
-            angular.forEach(channels, function(channel) {
-                if (checked.indexOf(parseInt(channel._id)) != -1) {
-                    channel.checked = true;
-                }
-            });
-            return channels;
+        get: function(all) {
+            var channels = _getChannels();
+            if (!!all) {
+                return channels;
+            } else {
+                return $filter('filter')(channels, {checked: true});
+            }
         },
         check: function(channelId) {
             var checked = _getChecked();
