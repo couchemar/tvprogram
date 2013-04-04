@@ -1,57 +1,79 @@
+"use strict";
 angular.module('app', ['ngResource'])
-.controller('MainController', function($scope, $log,
-                                       ProgramsResource, Channels,
-                                       Programs, ChannelsStorage) {
+.config(function($routeProvider) {
+    $routeProvider
+        .when('/', {
+            controller: 'ProgramsController',
+            templateUrl: 'public/templates/programs.tmpl.html',
+            resolve: {
+                programs: function($q,
+                                   ChannelsStorage,
+                                   ProgramsResource) {
+                    var checkedChannels = ChannelsStorage.get(false);
+                    var fetchedRequests = [];
 
-    var prepareChannel = function(channelId) {
-        ProgramsResource.get(
-            {channelId: channelId,
-             limit: 1},
-            function(data) {
-                $log.info(data);
-                Programs.save(data.programs);
-            },
-            function(reason) {
-                $log.info(reason);
+                    var deferred = $q.defer();
+                    angular.forEach(checkedChannels, function(channel) {
+                        var request = $q.defer();
+                        fetchedRequests.push(request.promise);
+                        ProgramsResource.get(
+                            {channelId: channel._id,
+                             limit: 1},
+                             function(data) {
+                                 request.resolve(data.programs);
+                             },
+                             function() {
+                                 request.reject();
+                             }
+                        );
+
+                    });
+                    var result = [];
+                    $q.all(fetchedRequests).then(function(responses) {
+                        angular.forEach(responses, function(response) {
+                            result.push.apply(result, response);
+                        });
+                        deferred.resolve(result);
+                    });
+                    return deferred.promise;
+                }
             }
-        );
-    };
-
-    var prepareChannels = function(channels) {
-        angular.forEach(channels, function(channel) {
-            prepareChannel(channel._id);
-        });
-    };
-
-    Channels.get(function(data) {
-        ChannelsStorage.save(data.channels);
-        $scope.channels = ChannelsStorage.get(true);
-        prepareChannels(ChannelsStorage.get(false));
-    });
-
-    $scope.$watch(ChannelsStorage.get, function(newValue, oldValue) {
-        if (oldValue == newValue) {
-            return;
-        }
-        $scope.channels = newValue;
-    }, true);
-
-    $scope.$watch(Programs.get, function(newValue, oldValue) {
-        if (oldValue == newValue) {
-            return;
-        }
-        $scope.programs = newValue;
-    }, true);
+        })
+        .when('/channels', {
+            controller: 'ChannelsController',
+            templateUrl: 'public/templates/channels.tmpl.html',
+            resolve: {
+                channels: function($q, Channels, $log) {
+                    var defer = $q.defer();
+                    Channels.get(
+                        function(data) {
+                            defer.resolve(data.channels);
+                        },
+                        function() {
+                            defer.reject();
+                        });
+                    return defer.promise;
+                }
+            }
+        })
+        .otherwise({redirectTo: '/'});
+})
+.controller('ChannelsController', function($scope,  channels,
+                                           ChannelsStorage) {
+    ChannelsStorage.save(channels);
+    $scope.channels = ChannelsStorage.get(true);
 
     $scope.check = function(channelId, checked) {
         if (checked) {
             ChannelsStorage.check(channelId);
-            prepareChannel(channelId);
         } else {
             ChannelsStorage.unCheck(channelId);
-            Programs.removeByChannelId(channelId);
         }
     };
+})
+.controller('ProgramsController', function($scope, programs) {
+    $scope.programs = programs;
+
 })
 .factory('Channels', function($resource) {
     var Channels = $resource(
@@ -80,10 +102,6 @@ angular.module('app', ['ngResource'])
         return channels;
     };
 
-    Channels.get(function(data) {
-        _save(data.channels);
-    });
-
     return {
         save: _save,
         get: function(all) {
@@ -108,26 +126,6 @@ angular.module('app', ['ngResource'])
                 checked.splice(idx, 1);
                 $window.localStorage['channels.checked'] = JSON.stringify(checked);
             }
-        }
-    };
-})
-.factory('Programs', function($filter) {
-    var programs = [];
-    return {
-        get: function() {
-            return programs;
-        },
-        save: function(_programs) {
-            programs.push.apply(programs, _programs);
-        },
-        removeByChannelId: function(channelId) {
-           programs = $filter('filter')(
-                programs, function(program) {
-                    if (program.channel_id != channelId) {
-                        return true;
-                    }
-                    return false;
-                });
         }
     };
 })
