@@ -1,5 +1,6 @@
 "use strict";
-angular.module('app', ['ngResource'])
+angular.module('app', ['ngResource',
+                       'tv.controllers'])
 .config(function($routeProvider) {
     $routeProvider
         .when('/', {
@@ -57,23 +58,6 @@ angular.module('app', ['ngResource'])
             }
         })
         .otherwise({redirectTo: '/'});
-})
-.controller('ChannelsController', function($scope,  channels,
-                                           ChannelsStorage) {
-    ChannelsStorage.save(channels);
-    $scope.channels = ChannelsStorage.get(true);
-
-    $scope.check = function(channelId, checked) {
-        if (checked) {
-            ChannelsStorage.check(channelId);
-        } else {
-            ChannelsStorage.unCheck(channelId);
-        }
-    };
-})
-.controller('ProgramsController', function($scope, programs) {
-    $scope.programs = programs;
-
 })
 .factory('Channels', function($resource) {
     var Channels = $resource(
