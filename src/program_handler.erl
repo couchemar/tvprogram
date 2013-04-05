@@ -75,11 +75,11 @@ process_cursor(Cursor, Acc, Limit) ->
         {} -> Acc;
         {Result} ->
             {SUT} = bson:lookup(start_date, Result),
-            STS = date_utils:format(SUT),
+            STS = iso8601:format(SUT),
             {EUT} = bson:lookup(end_date, Result),
-            ETS = date_utils:format(EUT),
-            Replaced1 = bson:update(start_date, list_to_binary(STS), Result),
-            Replaced2 = bson:update(end_date, list_to_binary(ETS), Replaced1),
+            ETS = iso8601:format(EUT),
+            Replaced1 = bson:update(start_date, STS, Result),
+            Replaced2 = bson:update(end_date, ETS, Replaced1),
             JResult = bson:fields(Replaced2),
             process(Cursor, [JResult|Acc], Limit)
     end.
