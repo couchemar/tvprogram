@@ -7,16 +7,19 @@ angular.module("tv", ['tv.controllers', 'tv.services'])
         controller: 'ProgramsController'
         templateUrl: 'public/templates/programs.tmpl.html'
         resolve:
-            programs: ($q, ChannelsStorage, ProgramsResource) ->
+            programs: ($q, $filter,
+                       ChannelsStorage, ProgramsResource) ->
                 checkedChannels = ChannelsStorage.get false
                 fetchedRequests = []
                 deferred = $q.defer()
+                startDate = $filter('date')(new Date(), 'yyyy-MM-ddTHH:mm:ssZ')
                 angular.forEach checkedChannels, (channel) ->
                     request = $q.defer()
                     fetchedRequests.push request.promise
                     ProgramsResource.get
                         channelId: channel._id
                         limit: 1
+                        startDate: startDate
                         (data) -> request.resolve data.programs
                         () -> request.reject()
 

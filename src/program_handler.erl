@@ -7,7 +7,6 @@
          content_types_provided/2,
          resource_exists/2]).
 
-
 % Callback Callbacs
 -export([program/2]).
 
@@ -42,17 +41,18 @@ resource_exists(Req, State) ->
 
 program(Req, ChannelID) ->
     {Limit, Req1} = cowboy_req:qs_val(<<"limit">>, Req),
+    {StartDate, Req2} = cowboy_req:qs_val(<<"startDate">>, Req1),
+    Date = date_utils:datetime_to_timestamp(iso8601:parse(StartDate)),
 
     Host = {localhost, 27017},
     {ok, Conn} = mongo:connect(Host),
-    Date = os:timestamp(),
     {ok, Cursor} = mongo:do(
                      safe, master, Conn, tv,
                      fun() -> prepare_find(Date, ChannelID) end
                     ),
     Result = process(Cursor, Limit),
     Json = jsx:encode([{<<"programs">>, Result}]),
-    {Json, rest_utils:add_cors_headers(Req1), ChannelID}.
+    {Json, rest_utils:add_cors_headers(Req2), ChannelID}.
 
 % =======
 % PRIVATE
