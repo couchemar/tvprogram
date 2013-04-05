@@ -1,6 +1,7 @@
 "use strict";
 angular.module('app', ['ngResource',
-                       'tv.controllers'])
+                       'tv.controllers',
+                       'tv.services'])
 .config(function($routeProvider) {
     $routeProvider
         .when('/', {
@@ -59,12 +60,6 @@ angular.module('app', ['ngResource',
         })
         .otherwise({redirectTo: '/'});
 })
-.factory('Channels', function($resource) {
-    var Channels = $resource(
-        'http://localhost\\:9090/channel/'
-    );
-    return Channels;
-})
 .factory('ChannelsStorage', function($window, $filter, Channels) {
     var _save = function(channels) {
             $window.localStorage['channels'] = JSON.stringify(channels);
@@ -112,11 +107,4 @@ angular.module('app', ['ngResource',
             }
         }
     };
-})
-.factory('ProgramsResource', function($resource){
-    var Programs = $resource(
-        'http://localhost\\:9090/channel/:channelId/program/',
-        {channelId: '@channelId'}
-    );
-    return Programs;
 });

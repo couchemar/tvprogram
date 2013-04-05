@@ -1,8 +1,9 @@
-module = angular.module 'tv.controllers', []
-module.controller 'ProgramsController', ($scope, programs) ->
+controllers = angular.module('tv.controllers', [])
+controllers.controller('ProgramsController', ($scope, programs) ->
     $scope.programs = programs
+)
 
-module.controller 'ChannelsController', ($scope, channels, ChannelsStorage) ->
+channelsController = controllers.controller('ChannelsController', ($scope, channels, ChannelsStorage) ->
     ChannelsStorage.save channels
     $scope.channels = ChannelsStorage.get true
     $scope.check = (channelId, checked) ->
@@ -10,3 +11,11 @@ module.controller 'ChannelsController', ($scope, channels, ChannelsStorage) ->
             ChannelsStorage.check channelId
         else
             ChannelsStorage.unCheck channelId
+)
+channelsController.resolve =
+    channels: ($q, Channels) ->
+        defer = $q.defer()
+        Channels.get(
+            (data) -> defer.resolve data.channels,
+            () -> defer.reject())
+        defer.promise
